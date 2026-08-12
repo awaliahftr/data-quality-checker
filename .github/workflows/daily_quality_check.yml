@@ -73,3 +73,9 @@ jobs:
         with:
           name: data-quality-reports
           path: reports/
+
+      - name: Upload cleaned data
+        uses: actions/upload-artifact@v4
+        with:
+          name: cleaned-data
+          path: data/clean/

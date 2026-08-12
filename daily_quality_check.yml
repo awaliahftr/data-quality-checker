@@ -1,0 +1,53 @@
+name: Daily Data Quality Check
+
+on:
+  schedule:
+    - cron: '0 1 * * *'  # Runs daily at 8:00 AM WIB (01:00 UTC)
+  workflow_dispatch:      # Allows manual trigger
+
+jobs:
+  quality-check:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+      
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+      
+      - name: Generate today's data
+        run: |
+          python src/data_generator.py
+      
+      - name: Run quality check
+        run: |
+          python src/quality_checker.py
+        env:
+          EMAIL_SENDER: ${{ secrets.EMAIL_SENDER }}
+          EMAIL_PASSWORD: ${{ secrets.EMAIL_PASSWORD }}
+          EMAIL_RECIPIENT: ${{ secrets.EMAIL_RECIPIENT }}
+      
+      - name: Send alert if needed
+        run: |
+          if [ -f reports/alert_needed.txt ]; then
+            python src/email_sender.py
+          else
+            echo "✅ No critical issues found."
+          fi
+        env:
+          EMAIL_SENDER: ${{ secrets.EMAIL_SENDER }}
+          EMAIL_PASSWORD: ${{ secrets.EMAIL_PASSWORD }}
+          EMAIL_RECIPIENT: ${{ secrets.EMAIL_RECIPIENT }}
+      
+      - name: Upload reports
+        uses: actions/upload-artifact@v4
+        with:
+          name: data-quality-reports
+          path: reports/

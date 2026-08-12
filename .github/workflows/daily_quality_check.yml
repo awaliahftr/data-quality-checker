@@ -25,6 +25,13 @@ jobs:
       - name: Generate today's data
         run: |
           python src/data_generator.py
+
+      - name: Debug - List files in data folder
+        run: |
+          echo "Current directory:"
+          pwd
+          echo "Contents of data folder (if exists):"
+          ls -la data/ || echo "Folder 'data/' not found!"
       
       - name: Run quality check
         run: |

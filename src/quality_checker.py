@@ -212,7 +212,7 @@ if __name__ == "__main__":
         'id': 'int64',
         'name': 'object',
         'age': 'int64',
-        'salary': 'float64',
+        'salary': 'int64',
         'join_date': 'object',
         'department': 'object'
     }

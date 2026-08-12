@@ -4,7 +4,7 @@ from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from datetime import datetime
 
-def send_alert_email(issue_summary: str = "Data quality issues detected") -> bool:
+def send_alert_email(issue_summary: str = "Data quality issues detected"):
     sender_email = os.environ.get('EMAIL_SENDER')
     sender_password = os.environ.get('EMAIL_PASSWORD')
     recipient_email = os.environ.get('EMAIL_RECIPIENT')
@@ -33,8 +33,7 @@ Generated at: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
     msg.attach(MIMEText(body, 'plain'))
     
     try:
-        server = smtplib.SMTP('smtp.gmail.com', 587)
-        server.starttls()
+        server = smtplib.SMTP('smtp.gmail.com', 465)
         server.login(sender_email, sender_password)
         server.send_message(msg)
         server.quit()

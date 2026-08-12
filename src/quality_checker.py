@@ -44,7 +44,7 @@ def detect_format_issue(df: pd.DataFrame) -> List[str]:
 def validate_schema(df:pd.DataFrame, expected_schema: Optional[Dict[str, str]] = None) -> Dict[str, List[str]]:
     result = {'critical': [], 'warning': []}
 
-    current_columns = set(df.column)
+    current_columns = set(df.columns)
 
     if expected_schema is None:
         result['warning'].append("No expected schema provided. Recording current structure only.")

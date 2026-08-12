@@ -206,6 +206,50 @@ def check_data_quality(
         report_lines.append("No critical issues found. Data quality is acceptable.")
     return "\n".join(report_lines), has_critical
 
+def clean_data(df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Safely standardizes data format WITHOUT altering business-critical numeric values.
+    - Removes leading/trailing spaces (strip)
+    - Standardizes capitalization (Title case for departments, lower case for names)
+    - Converts strings to numeric types (if conversion fails, sets to NaN, but DOES NOT fill them)
+    - Fills missing values ONLY for categorical columns ('Unknown')
+    - Removes duplicates (safe, as primary keys must be unique)
+    - DOES NOT touch numeric outliers or missing numeric values
+    """
+    df_clean = df.copy()
+    
+    # 1. TEXT STANDARDIZATION 
+    for col in df_clean.select_dtypes(include=['object']).columns:
+        df_clean[col] = df_clean[col].astype(str).str.strip()
+        
+        if col == 'department':
+            # Standardize to Title Case (e.g., "hr" -> "Hr")
+            df_clean[col] = df_clean[col].str.title()
+        else:
+            # For other text columns (like names), standardize to lower case
+            df_clean[col] = df_clean[col].str.lower()
+    
+    # 2. NUMERIC CONVERSION: Convert strings to numbers (if it fails -> NaN)
+    if 'salary' in df_clean.columns:
+        df_clean['salary'] = pd.to_numeric(df_clean['salary'], errors='coerce')
+    
+    if 'age' in df_clean.columns:
+        df_clean['age'] = pd.to_numeric(df_clean['age'], errors='coerce')
+    
+    # 3. CATEGORICAL MISSING VALUES: Only fill categorical columns with 'Unknown'
+    if 'department' in df_clean.columns:
+        df_clean['department'] = df_clean['department'].fillna('Unknown')
+    
+    # 4. DATE FORMAT: Try to convert (if it fails -> NaT/Null)
+    if 'join_date' in df_clean.columns:
+        df_clean['join_date'] = pd.to_datetime(df_clean['join_date'], errors='coerce')
+    
+    # 5. DUPLICATES: This is the only safe "deletion" of data.
+    if 'id' in df_clean.columns:
+        df_clean = df_clean.drop_duplicates(subset=['id'], keep='first')
+    
+    return df_clean
+
 #6. main
 if __name__ == "__main__":
     EXPECTED_SCHEMA = {
@@ -255,5 +299,13 @@ if __name__ == "__main__":
         if os.path.exists(alert_path):
             os.remove(alert_path)
 
+    print("\nStandardizing data format...")
+    df_standardized = clean_data(df) 
 
+    os.makedirs('data/clean', exist_ok=True)
+    clean_path = 'data/clean/sample_data_clean.csv'
+    df_standardized.to_csv(clean_path, index=False)
+    print(f"Standardized data saved to: {clean_path}")
+
+    print("\nQuality check pipeline completed successfully!")
 

@@ -161,12 +161,15 @@ def check_data_quality(
     #3. Schema
     report_lines.append("\n 3. Schema Validation:")
     schema_result = validate_schema(df, expected_schema)
-    for issue in schema_result['critical']:
-        report_lines.append(f"  {issue}")
-        has_critical = True
-    for issue in schema_result['warning']:
-        report_lines.append(f"  {issue}")
-
+    if not schema_result['critical'] and not schema_result['warning']:
+        report_lines.append("   No schema issues detected. All columns match expectations.")
+    else:
+        for issue in schema_result['critical']:
+            report_lines.append(f"  {issue}")
+            has_critical = True
+        for issue in schema_result['warning']:
+            report_lines.append(f"  {issue}")
+    
     #4. Primary key
     report_lines.append("\n 4. Primary Key Validation:")
     pk_issues = validate_primary_key(df, pk_col)

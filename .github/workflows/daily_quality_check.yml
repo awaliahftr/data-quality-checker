@@ -21,18 +21,33 @@ jobs:
       - name: Install dependencies
         run: |
           pip install -r requirements.txt
+
+      - name: Debug - List all files before generation
+        run: |
+          echo "📁 Current directory:"
+          pwd
+          echo "📁 All files in repository:"
+          ls -la
+          echo "📁 Check if src folder exists:"
+          ls -la src/ || echo "❌ src folder not found!"
       
       - name: Generate today's data
         run: |
           python src/data_generator.py
 
-      - name: Debug - List files in data folder
+      - name: Debug - List files after generation
         run: |
-          echo "Current directory:"
-          pwd
-          echo "Contents of data folder (if exists):"
-          ls -la data/ || echo "Folder 'data/' not found!"
-      
+          echo "📁 Files after generation:"
+          ls -la
+          echo "📁 Check data folder:"
+          ls -la data/ || echo "❌ data folder not found!"
+          if [ -f data/sample_data.csv ]; then
+            echo "✅ data/sample_data.csv exists!"
+            head -n 5 data/sample_data.csv
+          else
+            echo "❌ data/sample_data.csv NOT found!"
+          fi
+     
       - name: Run quality check
         run: |
           python src/quality_checker.py

@@ -58,10 +58,14 @@ jobs:
       
       - name: Send alert if needed
         run: |
+          echo "Checking for alert file..."
+          ls -la reports/
           if [ -f reports/alert_needed.txt ]; then
+            echo "🚨 Alert file found! Sending email..."
+            cat reports/alert_needed.txt
             python src/email_sender.py
           else
-            echo "✅ No critical issues found."
+            echo "✅ No critical issues found. Email not sent."
           fi
         env:
           EMAIL_SENDER: ${{ secrets.EMAIL_SENDER }}

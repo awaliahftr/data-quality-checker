@@ -38,7 +38,7 @@ data-quality-checker/
 ```
 
 ## 📧 Email Alert Sample
-![Email Alert](email_screenshot.png) 
+![Email Alert](https://github.com/awaliahftr/data-quality-checker/blob/7d0c7178021bb20578365ac398139703a9b218c5/reports/email_screenshot.png) 
 ## 🚀 How to Run Locally
 1. Clone this repository
 2. Install dependencies: `pip install -r requirements.txt`

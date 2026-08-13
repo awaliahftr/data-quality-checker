@@ -1,7 +1,7 @@
 name: Daily Data Quality Check
 
 env:
-  TODAY: $(date +'%Y-%m-%d')
+  TODAY: ${{ github.event.repository.updated_at }}
 
 on:
   schedule:

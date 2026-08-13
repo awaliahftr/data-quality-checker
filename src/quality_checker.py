@@ -253,6 +253,50 @@ def clean_data(df: pd.DataFrame) -> pd.DataFrame:
     
     return df_clean
 
+def generate_cleaning_summary(df_raw: pd.DataFrame, df_clean: pd.DataFrame) -> str:
+    lines = []
+    lines.append("=" * 70)
+    lines.append(f"CLEANING SUMMARY - {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+    lines.append("=" * 70)
+    
+    # 1. Comparison between rows and columns
+    lines.append(f"\n📊 Dataset Size:")
+    lines.append(f"   - Raw rows: {len(df_raw):,}")
+    lines.append(f"   - Clean rows: {len(df_clean):,}")
+    
+    # 2. Missing Values (Before vs After)
+    raw_missing = df_raw.isnull().sum().sum()
+    clean_missing = df_clean.isnull().sum().sum()
+    lines.append(f"\n📊 Missing Values:")
+    lines.append(f"   - Before cleaning: {raw_missing}")
+    lines.append(f"   - After cleaning:  {clean_missing}")
+    lines.append(f"   - ✅ Resolved:      {raw_missing - clean_missing}")
+    
+    # 3. Duplicate (Before vs After)
+    raw_dupes = df_raw.duplicated().sum()
+    clean_dupes = df_clean.duplicated().sum()
+    lines.append(f"\n📊 Duplicate Rows:")
+    lines.append(f"   - Before cleaning: {raw_dupes}")
+    lines.append(f"   - After cleaning:  {clean_dupes}")
+    lines.append(f"   - ✅ Removed:       {raw_dupes - clean_dupes}")
+    
+    # 4. Informations of cleaned columns
+    lines.append(f"\n🧹 Cleaning Operations Applied:")
+    lines.append(f"   - Text columns: stripped spaces, standardized casing")
+    lines.append(f"   - Missing values (department): filled with 'Unknown'")
+    lines.append(f"   - Numeric columns: converted to proper types (outliers preserved)")
+    
+    # 5. Outlier check in salary
+    if 'salary' in df_clean.columns:
+        outliers = df_clean[df_clean['salary'] < 0]
+        if len(outliers) > 0:
+            lines.append(f"\n⚠️ Outliers Still Present (Not Modified):")
+            lines.append(f"   - Negative salaries found: {len(outliers)} rows")
+            lines.append(f"   - (These require business review)")
+    
+    lines.append("\n" + "=" * 70)
+    return "\n".join(lines)
+
 #6. main
 if __name__ == "__main__":
     EXPECTED_SCHEMA = {
@@ -303,12 +347,21 @@ if __name__ == "__main__":
             os.remove(alert_path)
 
     print("\nStandardizing data format...")
+    
     df_standardized = clean_data(df) 
 
     os.makedirs('data/clean', exist_ok=True)
     clean_path = 'data/clean/sample_data_clean.csv'
     df_standardized.to_csv(clean_path, index=False)
     print(f"Standardized data saved to: {clean_path}")
+
+    cleaning_summary = generate_cleaning_summary(df, df_standardized)
+    
+    cleaning_report_path = f'{REPORTS_DIR}/cleaning_summary_{timestamp}.txt'
+    with open(cleaning_report_path, 'w') as f:
+        f.write(cleaning_summary)
+    
+    print(f"✅ Cleaning summary saved to: {cleaning_report_path}")
 
     print("\nQuality check pipeline completed successfully!")
 

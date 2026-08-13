@@ -33,7 +33,7 @@ Generated at: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
     msg.attach(MIMEText(body, 'plain'))
     
     try:
-        server = smtplib.SMTP('smtp.gmail.com', 465)
+        server = smtplib.SMTP('smtp.gmail.com', 587)
         server.login(sender_email, sender_password)
         server.send_message(msg)
         server.quit()

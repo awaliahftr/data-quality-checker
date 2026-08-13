@@ -16,9 +16,6 @@ In the real world, data is never clean. This project solves the problem of **man
 - **Audits** changes with before/after cleaning summaries for full transparency.
 
 ## ⚙️ How It Works (Flowchart)
-
-# How It Works (Flowchart)
-
 ```mermaid
 flowchart LR
     A[GitHub Actions Schedule<br> Daily 8 AM] --> B[Generate Messy Data]
@@ -73,6 +70,54 @@ data-quality-checker/
 3. Run the data generator: `python src/data_generator.py`
 4. Run the quality checker: `python src/quality_checker.py`
 
+## 🔐 Setting Up GitHub Secrets (For Email Alerts)
+
+To enable email alerts, add these secrets in your repository settings (`Settings -> Secrets and variables -> Actions`):
+
+| Secret Name | Description | Example Value |
+| :--- | :--- | :--- |
+| `EMAIL_FROM` | Your Gmail address (sender) | `your-email@gmail.com` |
+| `EMAIL_USERNAME` | Your Gmail address (same as above) | `your-email@gmail.com` |
+| `EMAIL_TO` | Recipient email address | `team-alerts@company.com` |
+| `SMTP_PASSWORD` | Google App Password (16 chars, no spaces) | `abcdefghijklmnop` |
+
+> **Note:** You need to generate a Google App Password. Do not use your regular Gmail password.
+
 ## 🔗 Connect with Me
 - [LinkedIn](https://linkedin.com/in/awaliahftrr)
 - [GitHub](https://github.com/awaliahftr)
+
+---
+
+## 🚀 For Further Development
+
+This project was built as a foundation for a production-ready data quality monitoring system. Here are some of the ideas I'm exploring to take it to the next level:
+
+### ✅ Short-term
+
+| Idea | Description | Why It Matters |
+| :--- | :--- | :--- |
+| **Connect to a Real Database** | Replace CSV reading with PostgreSQL/MySQL connection using SQLAlchemy. | Moves the project from "simulation" to "production-ready". |
+| **Dashboard Visualization** | Build a Streamlit dashboard to visualize quality metrics (missing values, duplicates, status) in real-time. | Makes insights accessible to non-technical stakeholders. |
+| **Slack/Telegram Alerts** | Add notifications to Slack or Telegram alongside email alerts. | Faster team response times for critical issues. |
+| **Enhanced Validations** | Add business-specific checks (e.g., email format validation, age range validation). | Catches more types of data issues automatically. |
+
+### 🛠️ Industry-Standard Upgrades (Mid-term)
+
+| Idea | Description | Why It Matters |
+| :--- | :--- | :--- |
+| **Integrate Great Expectations** | Replace custom validation logic with Great Expectations (GX Core)—the industry-standard data quality framework. | Shows you can work with tools used in enterprise data teams. |
+| **Data Lineage Tracking** | Add metadata tracking to trace data from source to destination. | Simplifies debugging and audit processes. |
+| **Automated Data Profiling** | Generate automatic statistics (min, max, distribution) for each column. | Provides quick insights without manual exploration. |
+
+### 🤖 AI-Powered Future (Long-term)
+
+| Idea | Description | Why It Matters |
+| :--- | :--- | :--- |
+| **Root Cause Analysis with LLMs** | When an anomaly is detected, send a summary to an LLM (e.g., GPT-4) to analyze the context and suggest possible root causes. | Transforms the system from a "reporter" to an "intelligent assistant" for data teams. |
+| **Auto-Healing Pipelines** | Implement logic to automatically fix common data quality issues (e.g., fill missing categorical values with 'Unknown'). | Reduces manual intervention and speeds up data delivery. |
+| **Anomaly Prediction** | Use time-series forecasting to predict when data quality issues are likely to occur. | Proactive issue prevention rather than reactive detection. |
+
+---
+
+*This project is a living example of how I approach data quality, starting with a solid foundation and continuously evolving to meet real-world challenges.*

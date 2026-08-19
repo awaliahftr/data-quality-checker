@@ -57,24 +57,16 @@ data-quality-checker/
 ## 📸 Pipeline Outputs
 
 ### 1. Data Quality Report (Before Cleaning)
-The pipeline detects missing values, schema mismatches, and format issues in raw data.
-
-![Data Quality Report](images/data_quality_report_before_cleaning.png)
+<img src="images/data_report_before_cleaning.png" width="550">
 
 ### 2. Email Alert
-If critical issues are found, an email alert is sent to the team automatically.
-
-![Email Alert](images/email_screenshot.png)
+<img src="images/email_screenshot.png" width="450">
 
 ### 3. Cleaning Summary
-After cleaning, the pipeline generates a summary comparing raw vs. cleaned data.
-
-![Cleaning Summary](images/cleaning_summary.png)
+<img src="images/cleaning_summary.png" width="500">
 
 ### 4. Cleaned Data (After Cleaning)
-The final cleaned data is ready for analysis—text standardized, numeric types corrected.
-
-![Cleaned Data](images/clean_data_sample.png)
+<img src="images/clean_data_sample.png" width="500">
 
 ## 🚀 How to Run Locally
 # Clone the repo

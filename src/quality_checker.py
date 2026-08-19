@@ -117,7 +117,7 @@ def validate_primary_key(df:pd.DataFrame, pk_col: str = 'id') -> List[str]:
     return issues
 
 #4. Outlier Detection
-def detect_outliers(df: pd.DataFrame, oqr_multiplier: float = 1.5) -> List[str]:
+def detect_outliers(df: pd.DataFrame, iqr_multiplier: float = 1.5) -> List[str]:
     issues = []
     numeric_cols = df.select_dtypes(include=[np.number]).columns
 

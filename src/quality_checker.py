@@ -1,21 +1,44 @@
 import pandas as pd
 import numpy as np
 import os
-import re
+import logging
 from datetime import datetime
 from typing import Dict, List, Tuple, Optional
 
+#logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(levelname)s - %(message)s',
+    datefmt='%Y-%m-%d %H:%M:%S'
+)
+logger = logging.getLogger(__name__)
+
+#constants
+# Default expected schema
+DEFAULT_SCHEMA = {
+    'id': 'int64',
+    'name': 'object',
+    'age': 'int64',
+    'salary': 'int64',
+    'join_date': 'object',
+    'department': 'object'
+}
+
+# Columns that require special handling in clean_data
+CATEGORICAL_COLUMNS = ['department']
+NUMERIC_COLUMNS = ['salary', 'age']
+DATE_COLUMNS = ['join_date']
+
 #Format detection
-def detect_format_issue(df: pd.DataFrame) -> List[str]:
+def detect_format_issues(df: pd.DataFrame) -> List[str]:
     issues = []
 
     for col in df.columns:
         if df[col].dropna().empty:
             continue
-
-        is_string_col = df[col].dtype == 'object'
-
-        if is_string_col:
+        if df[col].dtype != 'object':
+            continue
+            
             #1. Numeric as text
             test_convert = pd.to_numeric(df[col], errors='coerce')
             if test_convert.notna().sum() > 0:
@@ -42,8 +65,8 @@ def detect_format_issue(df: pd.DataFrame) -> List[str]:
 
 #2. Schema Validation
 def validate_schema(df:pd.DataFrame, expected_schema: Optional[Dict[str, str]] = None) -> Dict[str, List[str]]:
+    
     result = {'critical': [], 'warning': []}
-
     current_columns = set(df.columns)
 
     if expected_schema is None:
@@ -51,19 +74,20 @@ def validate_schema(df:pd.DataFrame, expected_schema: Optional[Dict[str, str]] =
         for col in df.columns:
             result['warning'].append(f"   - {col}: {df[col].dtype}")
         return result
+    
     expected_set = set(expected_schema.keys())
 
-    #Missing columns
+    #Missing columns (CRITICAL)
     missing_cols = expected_set - current_columns
     if missing_cols:
         result['critical'].append(f"Missing columns: {missing_cols}")
     
-    #Extra columns
+    #Extra columns (WARNING)
     extra_cols = current_columns - expected_set
     if extra_cols:
         result['warning'].append(f"Extra columns detected: {extra_cols}")
     
-    #Type mismatch
+    #Type mismatch (CRITICAL)
     for col, expected_dtype in expected_schema.items():
         if col in df.columns:
             actual_dtype = str(df[col].dtype)
@@ -93,7 +117,7 @@ def validate_primary_key(df:pd.DataFrame, pk_col: str = 'id') -> List[str]:
     return issues
 
 #4. Outlier Detection
-def detect_outliers(df: pd.DataFrame) -> List[str]:
+def detect_outliers(df: pd.DataFrame, oqr_multiplier: float = 1.5) -> List[str]:
     issues = []
     numeric_cols = df.select_dtypes(include=[np.number]).columns
 
@@ -105,8 +129,8 @@ def detect_outliers(df: pd.DataFrame) -> List[str]:
         Q1 = df[col].quantile(0.25)
         Q3 = df[col].quantile(0.75)
         IQR = Q3 - Q1
-        lower_bound = Q1 - 1.5 * IQR
-        upper_bound = Q3 + 1.5 * IQR
+        lower_bound = Q1 - iqr_multiplier * IQR
+        upper_bound = Q3 + iqr_multiplier * IQR
 
         outlier_count = df[(df[col] < lower_bound) | (df[col] > upper_bound)].shape[0]
         if outlier_count > 0:
@@ -225,7 +249,7 @@ def clean_data(df: pd.DataFrame) -> pd.DataFrame:
     for col in df_clean.select_dtypes(include=['object']).columns:
         df_clean[col] = df_clean[col].astype(str).str.strip()
         
-        if col == 'department':
+        if col in CATEGORICAL_COLUMNS:
             # Standardize to Title Case (e.g., "hr" -> "Hr")
             df_clean[col] = df_clean[col].str.title()
         else:
@@ -233,21 +257,21 @@ def clean_data(df: pd.DataFrame) -> pd.DataFrame:
             df_clean[col] = df_clean[col].str.lower()
     
     # 2. NUMERIC CONVERSION: Convert strings to numbers (if it fails -> NaN)
-    if 'salary' in df_clean.columns:
-        df_clean['salary'] = pd.to_numeric(df_clean['salary'], errors='coerce')
+    for col in NUMERIC_COLUMNS:
+        if col in df_clean.columns:
+            df_clean[col] = pd.to_numeric(df_clean[col], errors='coerce')
     
-    if 'age' in df_clean.columns:
-        df_clean['age'] = pd.to_numeric(df_clean['age'], errors='coerce')
+     # 3. CATEGORICAL MISSING VALUES: Only fill categorical columns with 'Unknown'
+    for col in CATEGORICAL_COLUMNS:
+        if col in df_clean.columns:
+            df_clean[col] = df_clean[col].fillna('Unknown')
     
-    # 3. CATEGORICAL MISSING VALUES: Only fill categorical columns with 'Unknown'
-    if 'department' in df_clean.columns:
-        df_clean['department'] = df_clean['department'].fillna('Unknown')
+    # 4. DATE FORMAT: Try to convert (if fails -> NaT/Null)
+    for col in DATE_COLUMNS:
+        if col in df_clean.columns:
+            df_clean[col] = pd.to_datetime(df_clean[col], errors='coerce')
     
-    # 4. DATE FORMAT: Try to convert (if it fails -> NaT/Null)
-    if 'join_date' in df_clean.columns:
-        df_clean['join_date'] = pd.to_datetime(df_clean['join_date'], errors='coerce')
-    
-    # 5. DUPLICATES: This is the only safe "deletion" of data.
+    # 5. DUPLICATES: This is the only safe "deletion" of data
     if 'id' in df_clean.columns:
         df_clean = df_clean.drop_duplicates(subset=['id'], keep='first')
     
@@ -298,70 +322,68 @@ def generate_cleaning_summary(df_raw: pd.DataFrame, df_clean: pd.DataFrame) -> s
     return "\n".join(lines)
 
 #6. main
-if __name__ == "__main__":
-    EXPECTED_SCHEMA = {
-        'id': 'int64',
-        'name': 'object',
-        'age': 'int64',
-        'salary': 'int64',
-        'join_date': 'object',
-        'department': 'object'
-    }
+def main():    
 
+    EXPECTED_SCHEMA = DEFAULT_SCHEMA
     PRIMARY_KEY = 'id'
     DATA_PATH = 'data/sample_data.csv'
     REPORTS_DIR = 'reports'
 
     try:
         df = pd.read_csv(DATA_PATH)
-        print(f"Data loaded: {len(df):,} rows, {len(df.columns)} columns")
+        logger.info(f"Data loaded: {len(df):,} rows, {len(df.columns)} columns")
     except FileNotFoundError:
-        print(f"Error: File '{DATA_PATH}' not found. Run data_generator.py first.")
+        logger.error(f"File '{DATA_PATH}' not found. Run data_generator.py first.")
         exit(1)
     except Exception as e:
-        print(f"Error loading data: {e}")
+        logger.error(f"Error loading data: {e}")
         exit(1)
     
-    #run quality check
+    # Run quality check
     report, has_critical = check_data_quality(df, EXPECTED_SCHEMA, PRIMARY_KEY)
-
-    #SAVE REPORT
+    
+    # Save report
     os.makedirs(REPORTS_DIR, exist_ok=True)
     timestamp = datetime.now().strftime("%Y%m%d")
     report_path = f'{REPORTS_DIR}/data_quality_{timestamp}.txt'
-
+    
     with open(report_path, 'w') as f:
         f.write(report)
-
-    print(f"\n Report saved to: {report_path}")
-
-    #flag for email alert
+    
+    logger.info(f"Report saved to: {report_path}")
+    
+    # Flag for email alert
     alert_path = f'{REPORTS_DIR}/alert_needed.txt'
     if has_critical:
-        print("CRITICAL ISSUES DETECTED! Alert will be triggered.")
+        logger.warning("CRITICAL ISSUES DETECTED! Alert will be triggered.")
         with open(alert_path, 'w') as f:
             f.write("ALERT: Critical data quality issues detected.")
     else:
-        print("All checks passed! No critical issues.")
+        logger.info("All checks passed! No critical issues.")
         if os.path.exists(alert_path):
             os.remove(alert_path)
-
-    print("\nStandardizing data format...")
     
-    df_standardized = clean_data(df) 
-
+    # Standardize data
+    logger.info("Standardizing data format...")
+    df_standardized = clean_data(df)
+    
+    # Save cleaned data
     os.makedirs('data/clean', exist_ok=True)
     clean_path = 'data/clean/sample_data_clean.csv'
     df_standardized.to_csv(clean_path, index=False)
-    print(f"Standardized data saved to: {clean_path}")
-
-    cleaning_summary = generate_cleaning_summary(df, df_standardized)
+    logger.info(f"Standardized data saved to: {clean_path}")
     
+    # Generate and save cleaning summary
+    cleaning_summary = generate_cleaning_summary(df, df_standardized)
     cleaning_report_path = f'{REPORTS_DIR}/cleaning_summary_{timestamp}.txt'
+    
     with open(cleaning_report_path, 'w') as f:
         f.write(cleaning_summary)
     
-    print(f"✅ Cleaning summary saved to: {cleaning_report_path}")
+    logger.info(f"Cleaning summary saved to: {cleaning_report_path}")
+    
+    logger.info("Quality check pipeline completed successfully!")
 
-    print("\nQuality check pipeline completed successfully!")
 
+if __name__ == "__main__":
+    main()

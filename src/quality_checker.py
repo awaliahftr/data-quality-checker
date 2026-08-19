@@ -210,7 +210,7 @@ def check_data_quality(
     
     #6. Format issues
     report_lines.append("\n 6. Format & Integrity:")
-    format_issues = detect_format_issue(df)
+    format_issues = detect_format_issues(df)
     if format_issues:
         for issue in format_issues:
             report_lines.append(f"  {issue}")

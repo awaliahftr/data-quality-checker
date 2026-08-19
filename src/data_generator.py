@@ -22,12 +22,15 @@ def generate_daily_data():
     #2. Names with intentional formatting issues
     names = []
     base_names = ["john doe", "jane smith", "alice wonderland", "bob the builder", "do kyungsoo"]
+    
     for _ in range(len(ids)):
         name = random.choice(base_names)
+    
         if today.weekday() == 1:   
             name = f"   {name}  "
-        if today.weekday() == 2:  
+        elif today.weekday() == 2:  
             name = name.upper()
+        
         names.append(name)
     
     #3. Ages with occasional text values

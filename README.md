@@ -65,10 +65,16 @@ data-quality-checker/
 ![Email Alert](https://github.com/awaliahftr/data-quality-checker/blob/7d0c7178021bb20578365ac398139703a9b218c5/reports/email_screenshot.png) 
 
 ## 🚀 How to Run Locally
-1. Clone this repository
-2. Install dependencies: `pip install -r requirements.txt`
-3. Run the data generator: `python src/data_generator.py`
-4. Run the quality checker: `python src/quality_checker.py`
+# Clone the repo
+git clone https://github.com/awaliahftr/data-quality-checker.git
+cd data-quality-checker
+
+# Install dependencies
+pip install -r requirements.txt
+
+# Run manually (optional)
+python src/data_generator.py
+python src/quality_checker.py
 
 ## 🔐 Setting Up GitHub Secrets (For Email Alerts)
 

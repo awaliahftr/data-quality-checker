@@ -34,13 +34,7 @@ flowchart LR
     classDef success fill:#ccffcc,stroke:#009900,color:#006600;
     class J success;
 ```
-## ⚙️ How It Works
-1. **Data Generator** creates a daily dataset with intentional errors (missing values, inconsistent formats, outliers).
-2. **Quality Checker** scans the raw data and generates a detailed report.
-3. **Email Alert** is sent if critical issues are detected (e.g., missing values, schema mismatches).
-4. **Data Cleaner** safely standardizes text fields and categorical missing values (numeric outliers are left untouched for business review).
-5. **Cleaning Summary** compares raw vs. cleaned data for full transparency.
-6. **Artifacts** (reports and cleaned data) are uploaded to GitHub Actions for download.
+The pipeline runs daily at 8 AM, generates messy data, runs quality checks, sends email alerts if critical issues are found, then cleans the data and uploads reports as artifacts for full transparency.
 
 ## 🛠️ Tech Stack
 - **Python** (Pandas, NumPy) – Data processing & cleaning
@@ -60,22 +54,44 @@ data-quality-checker/
 ├── requirements.txt
 └── README.md
 ```
+## 📸 Pipeline Outputs
 
-## 📧 Email Alert Sample
-![Email Alert](https://github.com/awaliahftr/data-quality-checker/blob/7d0c7178021bb20578365ac398139703a9b218c5/reports/email_screenshot.png) 
+### 1. Data Quality Report (Before Cleaning)
+The pipeline detects missing values, schema mismatches, and format issues in raw data.
+
+![Data Quality Report](images/data_quality_report_before_cleaning.png)
+
+### 2. Email Alert
+If critical issues are found, an email alert is sent to the team automatically.
+
+![Email Alert](images/email_screenshot.png)
+
+### 3. Cleaning Summary
+After cleaning, the pipeline generates a summary comparing raw vs. cleaned data.
+
+![Cleaning Summary](images/cleaning_summary.png)
+
+### 4. Cleaned Data (After Cleaning)
+The final cleaned data is ready for analysis—text standardized, numeric types corrected.
+
+![Cleaned Data](images/clean_data_sample.png)
 
 ## 🚀 How to Run Locally
 # Clone the repo
+```
 git clone https://github.com/awaliahftr/data-quality-checker.git
 cd data-quality-checker
+```
 
 # Install dependencies
+```
 pip install -r requirements.txt
-
+```
 # Run manually (optional)
+```
 python src/data_generator.py
 python src/quality_checker.py
-
+```
 ## 🔐 Setting Up GitHub Secrets (For Email Alerts)
 
 To enable email alerts, add these secrets in your repository settings (`Settings -> Secrets and variables -> Actions`):

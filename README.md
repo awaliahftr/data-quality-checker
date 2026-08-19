@@ -57,7 +57,7 @@ data-quality-checker/
 ## 📸 Pipeline Outputs
 
 ### 1. Data Quality Report (Before Cleaning)
-<img src="images/data_report_before_cleaning.png" width="550">
+<img src="images/data_quality_report_before_cleaning.png" width="550">
 
 ### 2. Email Alert
 <img src="images/email_screenshot.png" width="450">
